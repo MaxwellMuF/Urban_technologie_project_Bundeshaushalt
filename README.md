@@ -13,7 +13,7 @@ The approach is to use an encoder model (BERT or similar) to embed a newly creat
 ## 4. Check the mappings and repeat step 3 (4_Check_embeddings.ipynb)
 There are many problems with mapping and the data seems very challenging:
 - The name (col “Zweckbestimmung”) is not unique. For example, the value “Vermischte Verwaltungsausgaben” occurs 119 times in 2012 and 137 times in 2022. The values of the column “IST 2022” (price €) for these rows run in a range of 1k - 30m.
-- the new id + “Zweckbestimmung” gives a better index, but the FP (false positiv) predictions cause problems. The solution is to create a new column containing “all available information”. id ("Epl." + "Kap." + "Tit.") + “Zweckbestimmung” + price (e.g. col “IST 2022”) and embed it. 
+- the new id + “Zweckbestimmung” gives a better index, but the FP (false positiv) predictions cause problems (see "example_data/check_mapping_80.txt"). The solution is to create a new column containing “all available information”. id ("Epl." + "Kap." + "Tit.") + “Zweckbestimmung” + price (e.g. col “IST 2022”) and embed it. 
 - the embedding model does not handle numbers well, so a mapper was used to turn numbers into words ({"0" : "null", ..., "9" : "neun"}), which worked surprisingly well.
 - names such as “Bürgergeld” and “Arbeitslosengeld II” are not matchable, which is why a manual mapper was used here as an example (but only in this case and as an example)
 - Each line (reference year 2023) may only be mapped once. And FP should be avoided. The mapper was set so that each line may only be used once (memory) + a threshold value of 85% similarity (cosine similarity) was reached + all df was sorted by price so that the large items are mapped first.
