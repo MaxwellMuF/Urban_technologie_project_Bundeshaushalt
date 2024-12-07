@@ -56,7 +56,7 @@ def pipeline(range_years, zahlen_dict):
         df_i = df_i.rename(columns={"Zweckbestimmung" : f"20{year} Zweck"})
         df_result = pd.merge(df_result, df_i, on='id', how="inner")
         df_mapped_on_id = pd.merge(df_mapped_on_id_reference, df_i, on='id', how="inner")
-        df_mapped_on_id.to_csv(f"data/mapped_on_id/HR20{year}_id_mapped_to_{range_years[-1]}.csv")
+        df_mapped_on_id.to_csv(f"data/mapped_on_id/HR20{year}_id_mapped_to_HR20{range_years[-1]}.csv")
     return df_result
 
 # make number mapper
@@ -132,14 +132,14 @@ if __name__ == "__main__":
         df_i = df_i.rename(columns={"id" : f"20{year} id"})
         df_i["id"] = [int(df_2023_unmatched.iloc[idx,6]) if idx != None else None for idx in result_all]
 
-        df_i.to_csv(f"data/mapped_on_nlp/HR20{year}_nlp_mapped_to_2023.csv")
+        df_i.to_csv(f"data/mapped_on_nlp/HR20{year}_nlp_mapped_to_HR2023.csv")
 
         df_i = df_i[["id", f"20{year} id", f"20{year} Zweck", f"Ist 20{year}"]]
         print("\ndf_all len:", len(df_all))
         df_all = pd.merge(df_all, df_i, on='id', how="inner")
         #break
     
-    df_all.to_csv("HR10y_on_nlp.csv")
+    df_all.to_csv("data/HR10y_on_nlp.csv")
     time_end = time()
     time_script = time_end - time_start
     print(f"Script Time: {round(time_script//60)} [m] {round(time_script%60)} [s]")
