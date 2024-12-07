@@ -1,9 +1,7 @@
 .ipynb_checkpoints
 .venv
 backup
-data
+embeddings
 first ideas
-HR_10y_nlp_old.csv
-HR_10y_nlp.csv
-HR10y_on_nlp_current.csv
+example_data
 df_test.json
