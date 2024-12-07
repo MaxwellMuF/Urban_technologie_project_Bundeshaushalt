@@ -2,9 +2,11 @@ import numpy as np
 import pandas as pd
 import txtai
 from time import time
+from tqdm import tqdm
 import os
-os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
+# fix BERT model issue
+os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
 ## Functions
 def data_clearing(df):
@@ -82,7 +84,7 @@ if __name__ == "__main__":
         index_embedded_id_nlp.save("data/embeddings/df_2023_unmatched_ist")
 
     # Load years and make batch search
-    for year in range(12,24):
+    for year in tqdm(range(12,24)):
         print(f"Map index for year. {year}")
         df_i = data_preparing(f"HR20{year}.xlsx", year, zahlen_dict)
         df_i = df_i[~df_i["id"].isin(df_merged_10y["id"])]
@@ -105,7 +107,10 @@ if __name__ == "__main__":
         print(df_2023_unmatched.iloc[0])
         if len(result_all) < len(df_2023_unmatched):
             result_all = result_all + [None] * (len(df_2023_unmatched) - len(result_all))
-        df_i["mapped_idx"] = [df_2023_unmatched.iloc[idx,5] if idx != None else None for idx in result_all]
+        df_i[f"Ist 20{year}"] = [df_2023_unmatched.iloc[idx,4] if idx != None else None for idx in result_all]
+        df_i[f"20{year} Zweck"] = [df_2023_unmatched.iloc[idx,5] if idx != None else None for idx in result_all]
+        df_i[f"20{year} id"] = [df_2023_unmatched.iloc[idx,6] if idx != None else None for idx in result_all].astype(int, copy=False)
+        
 
         df_i.to_csv(f"data/vergleich_HR20{year}_s2_80_with_ist.csv")
 
