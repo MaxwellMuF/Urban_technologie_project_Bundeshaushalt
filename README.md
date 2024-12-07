@@ -4,7 +4,7 @@
 The project has developed in such a way that mainly a data set is created. Now the question is, what happens next? Is it more important to do something with this data such as visualization, analysis, clustering, etc.? Or is creating the data set more interesting and should it be developed into an API or at least a structured database?
 
 database:
-Previously, 10 years of the budget were mapped to the year 2023. If you only map the last 5 years, you get almost twice as many matches because the last 5 years match more than the last 10.
+Previously, 10 years of the budget were mapped to the year 2023 (HR10y_on_id.csv, HR10y_on_nlp.csv). If you only map the last 5 years, you get almost twice as many matches because the last 5 years match more than the last 10.
 
 API:
 Currently 11 Budgets.xlsx are used as the data basis (number can be extended). So far, the last year 2023 has always been taken as the reference year, i.e. all other years are mapped to 2023. This means that all bookings (rows) that do not occur in 2023 are lost. If you use a different year (e.g. 2018), you get completely different results (mapped rows) for the subset of years to be mapped (e.g. 2012-2017).
