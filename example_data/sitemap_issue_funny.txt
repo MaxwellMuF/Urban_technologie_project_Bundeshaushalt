@@ -1,3 +1,0 @@
-Ask GPT to find a sitemap: (my prompt: Kennst du die webseite https://www.bundeshaushalt.de/DE/Download-Portal/download-portal.html ? 
-Ich suche eine sitemap oder ähnliches um die Links für die Downloads der Dateien zu finden. Kannst du mir helfen?)
-GPT: I visited the specified page on the Bundeshaushalt website. While it provides download links for various documents related to the federal budget, it doesn't display a clear sitemap or index of all download URLs in one location.
