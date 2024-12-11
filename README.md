@@ -12,7 +12,7 @@ Currently 11 Budgets.xlsx are used as the data basis (number can be extended). S
 A simple API or just a well-structured pipeline in the form of a python file could generalize this approach.
 The user could then specify a reference year (e.g. 2018) and a period to be mapped (e.g. 2012-2017) and get a dataset in about 25min.
 I'm thinking of simply running through all embeddings for the years 2012-2023 once (on the cluster) and creating a database with them. As an example, for the year 2015 there would be either 11 csv files with a total of 14MB or one json file with a total of 20MB. 
-This would allow a user to create a dataset locally and without BERT in seconds (pd.merge(ref_year, [year_1,...,year_n])). 
+This would allow a user to create a dataset locally and without loading/using BERT (pd.merge(ref_year, [year_1,...,year_n])). 
 
 #### 3. Docker Image
 I could also build a Docker image and load it onto the DATEXIS registry. The raw data is very small at 5MB and could be integrated into the Docker image. So everyone could generate their data with a template yaml. (e.g. yaml variable: reference year: 2018 and period: 2012-2017)
