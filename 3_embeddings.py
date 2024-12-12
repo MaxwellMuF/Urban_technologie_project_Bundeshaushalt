@@ -81,6 +81,7 @@ if __name__ == "__main__":
     df_2023 = data_preparing("HR2023.xlsx", year_sort="23", zahlen_dict=zahlen_dict)
     df_2023 = mapper_handmade(df_2023)
     df_2023 = make_id_col(df_2023.copy(), year="23", zahlen_dict=zahlen_dict) # make id_nlp column again after mapper_handmade
+    df_2023.to_csv(f"data/mapped_on_nlp/HR2023_nlp_reference_year.csv")
 
     # Make or load HR10y_on_id.csv, i.e. 10 years mapped on id
     try:
@@ -110,7 +111,7 @@ if __name__ == "__main__":
     df_all = df_2023_unmatched.copy()
     # Load years and make batch search
     print(f"Mapp all years with NLP:")
-    for year in tqdm(range(12,24)):
+    for year in tqdm(range(12,23)):
         df_i = data_preparing(f"HR20{year}.xlsx", year, zahlen_dict)
         df_i = df_i[~df_i["id"].isin(df_merged_10y["id"])]
         if len(df_i) > len(df_2023_unmatched):
