@@ -33,9 +33,9 @@ def map_numbers(string):
 
 def data_preparing(file_name, year_sort, zahlen_dict):
     if file_name.endswith(".xlsx"):
-        df = pd.read_excel(f"data/data_raw/{file_name}") # HR20{year}.xlsx
+        df = pd.read_excel(f"infrastructure/data/data_raw/{file_name}") # HR20{year}.xlsx
     elif file_name.endswith(".csv"):
-        df = pd.read_csv(f"data/data_raw/{file_name}")
+        df = pd.read_csv(f"infrastructure/data/data_raw/{file_name}") # infrastructure/data/data_raw\HR2012.xlsx
     df = data_clearing(df)
     df = make_id_col(df, year_sort, zahlen_dict)
     df = df.sort_values(f"Ist 20{year_sort}", ascending=False)
@@ -44,19 +44,19 @@ def data_preparing(file_name, year_sort, zahlen_dict):
 
 # Pipeline to make HR10y_on_id.csv, i.e. 10 years mapped to id column
 def pipeline(range_years, zahlen_dict):
-    df_result = pd.read_excel(f"data/data_raw/HR20{range_years[-1]}.xlsx")
+    df_result = pd.read_excel(f"infrastructure/data/data_raw/HR20{range_years[-1]}.xlsx")
     df_result = data_clearing(df_result)
-    df_result = make_id_col(df_result, range_years[-1], zahlen_dict)[["id", "Zweckbestimmung", f"Ist 20{range_years[-1]}"]]
+    df_result = make_id_col(df_result, range_years[-1], zahlen_dict)[["id","Epl.", "Kap.", "Tit.", "Zweckbestimmung", f"Ist 20{range_years[-1]}"]]
     df_mapped_on_id_reference = df_result.copy()
     print("Make HR10y_on_id.csv, i.e. mapp 10 years excel on id column")
     for year in tqdm(range(range_years[0], range_years[1])):
-        df_i = pd.read_excel(f"data/data_raw/HR20{year}.xlsx")
+        df_i = pd.read_excel(f"infrastructure/data/data_raw/HR20{year}.xlsx")
         df_i = data_clearing(df_i)
         df_i = make_id_col(df_i, year, zahlen_dict)[["id", "Zweckbestimmung", f"Ist 20{year}"]]
         df_i = df_i.rename(columns={"Zweckbestimmung" : f"20{year} Zweck"})
         df_result = pd.merge(df_result, df_i, on='id', how="inner")
         df_mapped_on_id = pd.merge(df_mapped_on_id_reference, df_i, on='id', how="inner")
-        df_mapped_on_id.to_csv(f"data/mapped_on_id/HR20{year}_id_mapped_to_HR20{range_years[-1]}.csv")
+        # df_mapped_on_id.to_csv(f"domain/data/mapped_on_id/HR20{year}_id_mapped_to_HR20{range_years[-1]}.csv")
     return df_result
 
 # make number mapper
@@ -81,23 +81,24 @@ if __name__ == "__main__":
     df_2023 = data_preparing("HR2023.xlsx", year_sort="23", zahlen_dict=zahlen_dict)
     df_2023 = mapper_handmade(df_2023)
     df_2023 = make_id_col(df_2023.copy(), year="23", zahlen_dict=zahlen_dict) # make id_nlp column again after mapper_handmade
-    df_2023.to_csv(f"data/mapped_on_nlp/HR2023_nlp_reference_year.csv")
+    df_2023.to_csv(f"domain/data/mapped_on_nlp/HR2023_nlp_reference_year.csv")
 
     # Make or load HR10y_on_id.csv, i.e. 10 years mapped on id
     try:
-        df_merged_10y = pd.read_csv("data/HR10y_on_id.csv")
+        df_merged_10y = pd.read_csv("domain/data/HR10y_on_id.csv")
         print("Loaded HR10y_on_id.csv")
     except:
         print("Make HR10y_on_id.csv")
         df_merged_10y = pipeline((12,23), zahlen_dict)
-        df_merged_10y.to_csv("data/HR10y_on_id.csv")
+        df_merged_10y.to_csv("domain/data/HR10y_on_id.csv")
     # Make df with unmatched rows only
     df_2023_unmatched = df_2023[~df_2023["id"].isin(df_merged_10y["id"])].copy()
+    int("khdsgf")
 
     try:
         # try to load embeddings if they exist
         index_embedded_id_nlp = txtai.Embeddings(path="sentence-transformers/all-MiniLM-L6-v2", attn_implementation="eager")
-        index_embedded_id_nlp.load("data/embeddings/df_2023_unmatched_ist")
+        index_embedded_id_nlp.load("domain/data/embeddings/df_2023_unmatched_ist")
         print("Loaded embeddings:", index_embedded_id_nlp)
 
     except: # make embeddings if they not exist
@@ -106,7 +107,7 @@ if __name__ == "__main__":
         index_embedded_id_nlp.index(df_2023_unmatched["id_nlp"].tolist())
 
         print("Made embeddings:", index_embedded_id_nlp)
-        index_embedded_id_nlp.save("data/embeddings/df_2023_unmatched_ist")
+        index_embedded_id_nlp.save("domain/data/embeddings/df_2023_unmatched_ist")
 
     df_all = df_2023_unmatched.copy()
     # Load years and make batch search
@@ -133,14 +134,14 @@ if __name__ == "__main__":
         df_i = df_i.rename(columns={"id" : f"20{year} id"})
         df_i["id"] = [int(df_2023_unmatched.iloc[idx,6]) if idx != None else None for idx in result_all]
 
-        df_i.to_csv(f"data/mapped_on_nlp/HR20{year}_nlp_mapped_to_HR2023.csv")
+        df_i.to_csv(f"domain/data/mapped_on_nlp/HR20{year}_nlp_mapped_to_HR2023.csv")
 
         df_i = df_i[["id", f"20{year} id", f"20{year} Zweck", f"Ist 20{year}"]]
         print("\ndf_all len:", len(df_all))
         df_all = pd.merge(df_all, df_i, on='id', how="inner")
         #break
     
-    df_all.to_csv("data/HR10y_on_nlp.csv")
+    df_all.to_csv("domain/data/HR10y_on_nlp.csv")
     time_end = time()
     time_script = time_end - time_start
     print(f"Script Time: {round(time_script//60)} [m] {round(time_script%60)} [s]")

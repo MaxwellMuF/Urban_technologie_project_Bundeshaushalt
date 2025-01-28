@@ -70,11 +70,36 @@ def plot_kategory(df, str_kategory):
 
     return df_plot_all
 
+def filter_column_with_criteria(df, column, criteria):
+    if criteria == "All":
+        return df
+    else:
+        return df[df[column] == criteria].copy()
+
+def filter_selector_ministry(df, column, label, helper_text, st_column):
+    with st_column:
+        selected_criteria= st.selectbox(label=label, 
+                                               help=helper_text, 
+                                               options=["All"]+[int(i) for i in df[column].unique() if not np.isnan(i)]) #.astype(int)
+    return filter_column_with_criteria(df=df, column=column, criteria=selected_criteria)
+
+def config_edit_df_user_posts() -> dict[str:st.column_config]:
+    """Define the configuration of the columns for the editable dataframes"""
+    config = {
+        'Epl.' : st.column_config.NumberColumn('Epl.', width='small'),
+        'Kap.' : st.column_config.NumberColumn('Kap.', width='small'),
+        'Tit.' : st.column_config.NumberColumn('Tit.', width='small'),
+        'Zweckbestimmung' : st.column_config.TextColumn('Zweckbestimmung', width='medium'),
+        'Ist' : st.column_config.NumberColumn('Ist', width='medium'),
+        'Seite' : st.column_config.NumberColumn('Seite', width='small'),
+        'Zweck' : st.column_config.TextColumn('Zweck', width='medium')}
+    
+    return config
 # -------------------------------------------- Streamlit page ---------------------------------------------------------
 
 if "df_12y" not in st.session_state:
     # Load data
-    df_2023 = pd.read_excel("infrastructure/data/data_raw/HR2023.xlsx")
+    df_2023 = pd.read_excel("infrastructure/data/data_raw/HR2023.xlsx", engine="openpyxl")
     df_id = pd.read_csv("domain/data/HR10y_on_id.csv", index_col="Unnamed: 0")
     df_nlp = pd.read_csv("domain/data/HR10y_on_nlp.csv", index_col="Unnamed: 0")
 
@@ -108,6 +133,7 @@ with st.container(border=True):
     else:
         df_12y = st.session_state.df_12y
 
+
 # Select top 1-5 or 6-10 etc.
 with st.container(border=True):
     st.header("The biggest Positions:")
@@ -128,6 +154,7 @@ with st.container(border=True):
     column_config_plot_1["Zweckbestimmung"] = st.column_config.TextColumn(width=150)
     st.dataframe(user_df_plotted_1, column_config=column_config_plot_1, use_container_width=True)
 
+
 # String Filer: strings containing buzzword
 with st.container(border=True):
     st.header("Lets search for some buzzwords")
@@ -143,3 +170,37 @@ with st.container(border=True):
     column_config_plot_1 = {col : st.column_config.NumberColumn(width=110) for col in user_df_plotted_1.columns if col.startswith("Ist")}
     column_config_plot_1["Zweckbestimmung"] = st.column_config.TextColumn(width=150)
     st.dataframe(user_df_plotted_2, column_config=column_config_plot_1, use_container_width=True)
+
+
+# Widget with ministry filter and df show
+with st.container(border=True):
+    st.header("Let's take a look at the individual ministries.")
+    st.write("Here you can choose which ministry you would like to look at. \
+             You can also select individual chapters and titles of this ministry.")
+    # Make 3 streamlit columns, i.e. 3 elements horizontally next to each other
+    select_einzelplan, select_kapitel, select_titel = st.columns(3)
+
+    df_12y_filter = df_12y.drop([f"{year} id" for year in range(2012,2023)], axis=1) #.copy()
+    # Filters as user selected
+    user_df_year_filtered = filter_selector_ministry(df_12y_filter, column="Epl.", label="Einzelplan (Epl.)", 
+                             helper_text="This is the ministry", st_column=select_einzelplan)
+    user_df_year_filtered = filter_selector_ministry(user_df_year_filtered, column="Kap.", label="Kapitel (Kap.)", 
+                             helper_text="This is the chapter of the ministry", st_column=select_kapitel)
+    user_df_year_filtered = filter_selector_ministry(user_df_year_filtered, column="Tit.", label="Titel (Tit.)", 
+                             helper_text="This is the title for the booking. Repeating positions \
+                                                (e.g. Vermischte Verwaltungsausgaben) have the same title and only occur \
+                                                    once per chapter.", st_column=select_titel)
+    # Show filter df
+    for year in range(2012,2023):
+        column_config_plot_1[f'{year} Zweck'] = st.column_config.TextColumn(f'{year} Zweck', width='medium')
+    st.dataframe(user_df_year_filtered, column_config=column_config_plot_1, use_container_width=True,
+                 column_order=["Epl.","Kap.","Tit.", "Zweckbestimmung"]+\
+                              [f"Ist {year}" for year in range(2012,2024)]+\
+                              [f"{year} Zweck" for year in range(2012,2023)])
+    ist_col = "Ist 2023" #[col for col in user_df_year_filtered.columns if col.startswith("Ist")][0]
+    sum_all_positions = int(user_df_year_filtered[ist_col].sum())
+    st.write(f"The table above shows a total of {user_df_year_filtered.shape[0]:4} selected positions with a total budget of {sum_all_positions:15}, \
+             \nthat means {int(sum_all_positions//1e9)} billions {int(sum_all_positions%1e9//1e6)} millions and {int(sum_all_positions%1e6//1e3)} thousands. \
+             Note, this is the sum of the reference year 2023.")
+
+    plot_kategory(user_df_year_filtered, "")

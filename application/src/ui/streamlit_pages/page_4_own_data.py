@@ -121,7 +121,3 @@ with st.container(border=True):
                                                     once per chapter.", st_column=select_titel)
     # Show filter df
     st.dataframe(user_df_year_filtered, column_config=config_edit_df_user_posts(), use_container_width=True)
-    ist_col = [col for col in user_df_year_filtered.columns if col.startswith("Ist")][0]
-    sum_all_positions = int(user_df_year_filtered[ist_col].sum())
-    st.write(f"The table above shows a total of {user_df_year_filtered.shape[0]:4} selected positions with a total budget of {sum_all_positions:15}, \
-             \nthat means {int(sum_all_positions//1e9)} billions {int(sum_all_positions%1e9//1e6)} millions and {int(sum_all_positions%1e6//1e3)} thousands")
