@@ -6,8 +6,6 @@ from application.src.utilities import methods_login
 def init_st_session_state():
     """Initialize all streamlit.session_states that are needed or required in the app."""
 
-    if "submited_post" not in st.session_state:
-        st.session_state.submited_post = False
     return
 
 # ------------------------------- Pages --------------------------------------

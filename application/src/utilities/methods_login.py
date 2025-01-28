@@ -54,10 +54,6 @@ def logout_widget():
     """Logout user instant and clear user session_states"""
     st.title(f"Thank you for a visit *{st.session_state.name}*")
     authenticator.logout()
-    
-    if st.session_state.Logout:
-        # delete user DB
-        del st.session_state.df_stations_user_edit
 
     return
 
