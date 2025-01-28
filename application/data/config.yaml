@@ -1,0 +1,23 @@
+cookie:
+  expiry_days: 30
+  key: some_key
+  name: some_cookie_name
+credentials:
+  usernames:
+    user1:
+      email: user1@gmail.com
+      failed_login_attempts: 0
+      logged_in: true
+      name: Test User
+      password: $2b$12$TT.gJAQvDBSoBLcwGO02uulhQMJgRagYGsh.pdSu9gqNdNodlacoS
+      pw_clear: '123'
+    user2:
+      email: user2@email.com
+      failed_login_attempts: 0
+      first_name: Test two
+      last_name: User
+      logged_in: false
+      password: $2b$12$TT.gJAQvDBSoBLcwGO02uulhQMJgRagYGsh.pdSu9gqNdNodlacoS
+      password_hint: user2
+      pw_clear: '123'
+      roles: null
