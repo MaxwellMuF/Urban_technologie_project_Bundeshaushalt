@@ -62,8 +62,7 @@ def config_edit_df_user_posts() -> dict[str:st.column_config]:
 st.title("Look at raw data of every year", help="Why raw data? The processed data is particularly \
          interesting because it shows positions over several years. The raw data only shows one year. \
          However, as the same positions do not occur every year, the raw data shows more, i.e. \
-         the entire budget for the year.\
-         \nAnd where have the nice graphs gone? Well, if you only look at one year, you can't draw a timeline, right?")
+         the entire budget for the year.")
 
 # Widget with year selector and df show
 with st.container(border=True):
@@ -125,3 +124,32 @@ with st.container(border=True):
     sum_all_positions = int(user_df_year_filtered[ist_col].sum())
     st.write(f"The table above shows a total of {user_df_year_filtered.shape[0]:4} selected positions with a total budget of {sum_all_positions:15}, \
              \nthat means {int(sum_all_positions//1e9)} billions {int(sum_all_positions%1e9//1e6)} millions and {int(sum_all_positions%1e6//1e3)} thousands")
+    
+with st.container(border=True):
+    st.subheader("Quick Calculator")
+    c1, c2, c3, c4, c5 = st.columns([3,3,3,1,3])
+
+    with c1:
+        value_1 = st.text_input("First Number", placeholder="5")
+    with c3:
+        value_2 = st.text_input("Second Number", placeholder="10")
+    with c2:
+        operator = st.selectbox("Operator", options=["+", "-", "*", "/"], placeholder="+")
+    with c4:
+        st.text_input("is",value="=")
+    with c5:
+        try:
+            if operator == "+":
+                result = float(value_1)+float(value_2)
+            elif operator == "-":
+                result = float(value_1)-float(value_2)
+            elif operator == "*":
+                result = float(value_1)*float(value_2)
+            elif operator == "/":
+                result = float(value_1)/float(value_2)
+            else:
+                result = 15
+        except:
+            result = "15"
+        st.text_input("Result",value=str(result), placeholder="15")
+    
