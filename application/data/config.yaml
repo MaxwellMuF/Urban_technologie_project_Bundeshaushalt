@@ -7,7 +7,7 @@ credentials:
     user1:
       email: user1@gmail.com
       failed_login_attempts: 0
-      logged_in: true
+      logged_in: false
       name: Test User
       password: $2b$12$TT.gJAQvDBSoBLcwGO02uulhQMJgRagYGsh.pdSu9gqNdNodlacoS
       pw_clear: '123'

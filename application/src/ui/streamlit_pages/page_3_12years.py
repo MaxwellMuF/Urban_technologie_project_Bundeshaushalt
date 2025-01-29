@@ -6,8 +6,9 @@ import streamlit as st
 from application.src.utilities import helper_pages as helper
 # -------------------------------------------- Funktions ---------------------------------------------------------
 def plot_5_positions(df, position_range=(1,5)):
-    df_plot = df.iloc[position_range[0]-1:position_range[1]].set_index("Zweckbestimmung")[[f"Ist 20{year}" for year in range(12,24)]].T.copy() 
-    # [[col for col in df.columns if col.startswith("Ist")]]
+    sort_column = sorted([col for col in df.columns if col.startswith("Ist")])[-1]
+    df = df.sort_values(by=sort_column, ascending=False)
+    df_plot = df.iloc[position_range[0]-1:position_range[1]].set_index("Zweckbestimmung")[sorted([col for col in df.columns if col.startswith("Ist")])].T.copy() 
     # Setting a larger figure size and applying a style
     fig = plt.figure(figsize=(12, 8))  # Adjust the width and height as needed
     plt.style.use('ggplot')  # You can choose other styles like 'ggplot', 'fivethirtyeight', etc.
@@ -44,7 +45,7 @@ def plot_kategory(df, str_kategory):
     user_df_filtered_all = string_contains_ignore_first_capital(df, str_kategory)
 
     df_plot_all = user_df_filtered_all[["id", 'Epl.', 'Kap.', 'Tit.',"Zweckbestimmung"]+\
-                                       [f"Ist 20{year}" for year in range(12,24)]] # use range f"" for right col order
+                                       sorted([col for col in df.columns if col.startswith("Ist")])]
     df_plot_sum = df_plot_all.drop(columns=["id",'Epl.','Kap.','Tit.',"Zweckbestimmung"])\
                              .sum(axis=0).rename(str_kategory)
     
@@ -147,20 +148,38 @@ init_session_states()
 # Check how much volumn of booking 2023 are mapped and round checkbox
 st.title("Bundeshaushalt over 12 years")
 with st.container(border=True):
-    # money_mapped = round(st.session_state.df_12y["Ist 2023"].sum() / st.session_state.df_2023["Ist 2023"].sum(), 3)
-    # st.write(f"Persentage of Budget 23_mapped / 23_all: {money_mapped}")
-    # st.write(f"Rufly {round(money_mapped*100)}% of the money is mapped")
-    st.subheader("Round the price columns")
-    # Round the 'Ist' columns if round selected
-    user_round_df = st.checkbox(label='Round all the price columns "Ist ..." of dataframe (recommended)',
-                                value=True, 
-                                help="The values are easier to compare if you round the decimal places. \
-                                      If you want to have the exact data, e.g. because you want to download the table, \
-                                      just uncheck this box.")
-    if user_round_df:
-        df_12y = st.session_state.df_12y_round
+    if "own_dataset" in st.session_state:
+        st.subheader("Round the price columns and use your own dataset")
+        # Round the 'Ist' columns if round selected
+        user_round_df = st.checkbox(label='Round all the price columns "Ist ..." of dataframe (recommended)',
+                                    value=True, 
+                                    help="The values are easier to compare if you round the decimal places. \
+                                        If you want to have the exact data, e.g. because you want to download the table, \
+                                        just uncheck this box.")
+        user_data_set_selection = st.checkbox(label="User your own dataset from page 'Make own Data':",
+                                              help="You can activate this box to use your own dataset on this page")
+        if user_data_set_selection:
+            df_12y = st.session_state.own_dataset
+        else:
+            df_12y = st.session_state.df_12y
+        
+        if user_round_df:
+            price_cols = [col for col in df_12y if col.startswith("Ist")]
+            df_12y = df_12y.round({price_col:0 for price_col in price_cols})\
+                           .astype({price_col:"int64" for price_col in price_cols}, copy=True)
+
     else:
-        df_12y = st.session_state.df_12y
+        st.subheader("Round the price columns")
+        # Round the 'Ist' columns if round selected
+        user_round_df = st.checkbox(label='Round all the price columns "Ist ..." of dataframe (recommended)',
+                                    value=True, 
+                                    help="The values are easier to compare if you round the decimal places. \
+                                        If you want to have the exact data, e.g. because you want to download the table, \
+                                        just uncheck this box.")
+        if user_round_df:
+            df_12y = st.session_state.df_12y_round
+        else:
+            df_12y = st.session_state.df_12y
 
 
 # Select top 1-5 or 6-10 etc.
@@ -211,8 +230,8 @@ with st.container(border=True):
              You can also select individual chapters and titles of this ministry.")
     # Make 3 streamlit columns, i.e. 3 elements horizontally next to each other
     select_einzelplan, select_kapitel, select_titel = st.columns(3)
-
-    df_12y_filter = df_12y.drop([f"{year} id" for year in range(2012,2023)], axis=1) #.copy()
+    
+    df_12y_filter = df_12y #.drop([f"{year} id" for year in range(2012,2023)], axis=1) #.copy()
     # Filters as user selected
     user_df_year_filtered = filter_selector_ministry2(df_12y_filter, column="Epl.", label="Einzelplan (Epl.)", 
                              helper_text="This is the ministry", st_column=select_einzelplan)
@@ -223,17 +242,17 @@ with st.container(border=True):
                                                 (e.g. Vermischte Verwaltungsausgaben) have the same title and only occur \
                                                     once per chapter.", st_column=select_titel)
     # Show filter df
-    for year in range(2012,2023):
+    for year in sorted([col for col in user_df_year_filtered.columns if col.startswith("Ist")]):
         column_config_plot_1[f'{year} Zweck'] = st.column_config.TextColumn(f'{year} Zweck', width='medium')
     st.dataframe(user_df_year_filtered, column_config=column_config_plot_1, use_container_width=True,
                  column_order=["Epl.","Kap.","Tit.", "Zweckbestimmung"]+\
                               [f"Ist {year}" for year in range(2012,2024)]+\
                               [f"{year} Zweck" for year in range(2012,2023)])
-    ist_col = "Ist 2023" #[col for col in user_df_year_filtered.columns if col.startswith("Ist")][0]
+    ist_col = sorted([col for col in user_df_year_filtered.columns if col.startswith("Ist")])[-1]
     sum_all_positions = int(user_df_year_filtered[ist_col].sum())
     st.write(f"The table above shows a total of {user_df_year_filtered.shape[0]:4} selected positions with a total budget of {sum_all_positions:15}, \
              \nthat means {int(sum_all_positions//1e9)} billions {int(sum_all_positions%1e9//1e6)} millions and {int(sum_all_positions%1e6//1e3)} thousands. \
-             Note, this is the sum of the reference year 2023.")
+             Note, this is the sum of the reference year {ist_col.replace('Ist ', '')}.")
 
     plot_kategory(user_df_year_filtered, "")
 

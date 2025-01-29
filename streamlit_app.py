@@ -24,10 +24,11 @@ def pages_after_login():
     welcome = st.Page("application/src/ui/streamlit_pages/page_1_welcome.py", title="Welcome", icon=":material/home:")
     raw_data = st.Page("application/src/ui/streamlit_pages/page_2_raw_data.py", title="Raw data", icon=":material/dataset:")
     haushalt = st.Page("application/src/ui/streamlit_pages/page_3_12years.py", title="12 years Bundeshaushalt", icon=":material/monitoring:")
+    own_data = st.Page("application/src/ui/streamlit_pages/page_4_own_data.py", title="Make own Data", icon=":material/add_circle:")    
     reset_password = st.Page(methods_login.reset_password_widget, title="Reset Password", icon=":material/lock_reset:")
     logout = st.Page(methods_login.logout_widget, title="Logout", icon=":material/home:")
 
-    return [welcome, raw_data, haushalt, reset_password, logout]
+    return [welcome, raw_data, haushalt, own_data, reset_password, logout]
 
 def main():
     """

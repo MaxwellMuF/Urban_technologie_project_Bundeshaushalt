@@ -2,10 +2,6 @@ import numpy as np
 import pandas as pd
 from time import time
 from tqdm import tqdm
-import os
-
-# fix BERT model issue
-os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
 ## Functions
 def data_clearing(df):
@@ -35,7 +31,7 @@ def data_preparing(file_name, year_sort):
     return df
 
 # Pipeline to make HR10y_on_id.csv, i.e. 12 years mapped to id column
-def pipeline(range_years):
+def pipeline(range_years: tuple[int,int]):
     # Choose reference year and pro process it
     df_result = pd.read_excel(f"infrastructure/data/data_raw/HR{range_years[-1]}.xlsx")
     df_result = data_clearing(df_result)
@@ -49,8 +45,8 @@ def pipeline(range_years):
         df_i = make_id_col(df_i)[["id", "Zweckbestimmung", f"Ist {year}"]]
         df_i = df_i.rename(columns={"Zweckbestimmung" : f"{year} Zweckbestimmung"})
         df_result = pd.merge(df_result, df_i, on='id', how="inner")
-        df_mapped_on_id = pd.merge(df_mapped_on_id_reference, df_i, on='id', how="inner")
-        df_mapped_on_id.to_csv(f"domain/data/mapped_on_id/HR{year}_id_mapped_to_HR{range_years[-1]}.csv")
+        # df_mapped_on_id = pd.merge(df_mapped_on_id_reference, df_i, on='id', how="inner")
+        # df_mapped_on_id.to_csv(f"domain/data/mapped_on_id/HR{year}_id_mapped_to_HR{range_years[-1]}.csv")
     return df_result
 
 if __name__ == "__main__":
