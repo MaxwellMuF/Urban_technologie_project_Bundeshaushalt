@@ -1,8 +1,9 @@
 import numpy as np
 import pandas as pd
 import streamlit as st
+import openpyxl
 
-
+from application.src.utilities import helper_pages as helper
 
 # -------------------------------------------- Funktions ---------------------------------------------------------
 def round_df(df):
@@ -36,11 +37,21 @@ def filter_column_with_criteria(df, column, criteria):
         return df
     else:
         return df[df[column] == criteria].copy()
+    
+def filter_selector_ministry2(df, column, label, helper_text, st_column):
+    with st_column:
+        selected_criteria= st.selectbox(label=label, 
+                                        help=helper_text,
+            # sorry for this list comp: several event catching if 'Tgr.' in title of some early years (e.g. 2012)
+            options= ["All"] + list(st.session_state.ministry_mapper_dict.keys()))
+        if selected_criteria != "All":
+            selected_criteria = st.session_state.ministry_mapper_dict[selected_criteria]
+    return filter_column_with_criteria(df=df, column=column, criteria=selected_criteria)
 
 def filter_selector_ministry(df, column, label, helper_text, st_column):
     with st_column:
         selected_criteria= st.selectbox(label=label, 
-                                               help=helper_text,
+                                        help=helper_text,
             # sorry for this list comp: several event catching if 'Tgr.' in title of some early years (e.g. 2012)
             options=["All"]+[int(float(str(i).replace("Tgr.", ""))) for i in df[column].unique() if not np.isnan(float(str(i).replace("Tgr.", "")))]) #.astype(int)
     return filter_column_with_criteria(df=df, column=column, criteria=selected_criteria)
@@ -48,16 +59,25 @@ def filter_selector_ministry(df, column, label, helper_text, st_column):
 def config_edit_df_user_posts() -> dict[str:st.column_config]:
     """Define the configuration of the columns for the editable dataframes"""
     config = {
-        'Epl.' : st.column_config.NumberColumn('Epl.', width='small'),
-        'Kap.' : st.column_config.NumberColumn('Kap.', width='small'),
-        'Tit.' : st.column_config.NumberColumn('Tit.', width='small'),
-        'Zweckbestimmung' : st.column_config.TextColumn('Zweckbestimmung', width='medium'),
-        'Ist' : st.column_config.NumberColumn('Ist', width='medium'),
-        'Seite' : st.column_config.NumberColumn('Seite', width='small')}
+        'Epl.' : st.column_config.NumberColumn('Epl.', width=40),
+        'Kap.' : st.column_config.NumberColumn('Kap.', width=40),
+        'Tit.' : st.column_config.NumberColumn('Tit.', width=55),
+        'Zweckbestimmung' : st.column_config.TextColumn('Zweckbestimmung', width=310),
+        'Ist' : st.column_config.NumberColumn('Ist', width=70),
+        'Seite' : st.column_config.NumberColumn('Seite', width=50)}
     
     return config
 
+def init_session_states():
+    """Init the streamlit session states for this page"""
+    if "ministry_mapper_dict" not in st.session_state:
+        st.session_state.ministry_mapper_dict = helper.load_json("application/data/ministry_mapper_dict.json")
+
+    return
 # -------------------------------------------- Streamlit page ---------------------------------------------------------
+
+# Init data
+init_session_states()
 
 st.title("Look at raw data of every year", help="Why raw data? The processed data is particularly \
          interesting because it shows positions over several years. The raw data only shows one year. \
@@ -110,8 +130,8 @@ with st.container(border=True):
     select_einzelplan, select_kapitel, select_titel = st.columns(3)
 
     # Filters as user selected
-    user_df_year_filtered = filter_selector_ministry(user_df_year, column="Epl.", label="Einzelplan (Epl.)", 
-                             helper_text="This is the ministry", st_column=select_einzelplan)
+    user_df_year_filtered = filter_selector_ministry2(user_df_year, column="Epl.", label="Einzelplan (Epl.)", 
+                             helper_text="This is the ministry. \\\nPlease note that you see the names but the table only shows the number of the ministry (e.g. 'Bundesrat' has number '3')", st_column=select_einzelplan)
     user_df_year_filtered = filter_selector_ministry(user_df_year_filtered, column="Kap.", label="Kapitel (Kap.)", 
                              helper_text="This is the chapter of the ministry", st_column=select_kapitel)
     user_df_year_filtered = filter_selector_ministry(user_df_year_filtered, column="Tit.", label="Titel (Tit.)", 
@@ -124,32 +144,8 @@ with st.container(border=True):
     sum_all_positions = int(user_df_year_filtered[ist_col].sum())
     st.write(f"The table above shows a total of {user_df_year_filtered.shape[0]:4} selected positions with a total budget of {sum_all_positions:15}, \
              \nthat means {int(sum_all_positions//1e9)} billions {int(sum_all_positions%1e9//1e6)} millions and {int(sum_all_positions%1e6//1e3)} thousands")
-    
-with st.container(border=True):
-    st.subheader("Quick Calculator")
-    c1, c2, c3, c4, c5 = st.columns([3,3,3,1,3])
 
-    with c1:
-        value_1 = st.text_input("First Number", placeholder="5")
-    with c3:
-        value_2 = st.text_input("Second Number", placeholder="10")
-    with c2:
-        operator = st.selectbox("Operator", options=["+", "-", "*", "/"], placeholder="+")
-    with c4:
-        st.text_input("is",value="=")
-    with c5:
-        try:
-            if operator == "+":
-                result = float(value_1)+float(value_2)
-            elif operator == "-":
-                result = float(value_1)-float(value_2)
-            elif operator == "*":
-                result = float(value_1)*float(value_2)
-            elif operator == "/":
-                result = float(value_1)/float(value_2)
-            else:
-                result = 15
-        except:
-            result = "15"
-        st.text_input("Result",value=str(result), placeholder="15")
+# Widget Calculator
+with st.container(border=True):
+    helper.calculator()
     

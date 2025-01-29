@@ -3,6 +3,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 import streamlit as st
 
+from application.src.utilities import helper_pages as helper
 # -------------------------------------------- Funktions ---------------------------------------------------------
 def plot_5_positions(df, position_range=(1,5)):
     df_plot = df.iloc[position_range[0]-1:position_range[1]].set_index("Zweckbestimmung")[[f"Ist 20{year}" for year in range(12,24)]].T.copy() 
@@ -42,9 +43,6 @@ def plot_kategory(df, str_kategory):
     # Fix upper / lower case issue:
     user_df_filtered_all = string_contains_ignore_first_capital(df, str_kategory)
 
-    # Print the number of rows
-    st.write(f"df_sub has {len(user_df_filtered_all)} rows containing str: {str_kategory}")
-
     df_plot_all = user_df_filtered_all[["id", 'Epl.', 'Kap.', 'Tit.',"Zweckbestimmung"]+\
                                        [f"Ist 20{year}" for year in range(12,24)]] # use range f"" for right col order
     df_plot_sum = df_plot_all.drop(columns=["id",'Epl.','Kap.','Tit.',"Zweckbestimmung"])\
@@ -83,37 +81,68 @@ def filter_selector_ministry(df, column, label, helper_text, st_column):
                                                options=["All"]+[int(i) for i in df[column].unique() if not np.isnan(i)]) #.astype(int)
     return filter_column_with_criteria(df=df, column=column, criteria=selected_criteria)
 
+def filter_selector_ministry2(df, column, label, helper_text, st_column):
+    with st_column:
+        selected_criteria= st.selectbox(label=label, 
+                                        help=helper_text,
+            # sorry for this list comp: several event catching if 'Tgr.' in title of some early years (e.g. 2012)
+            options= ["All"] + list(st.session_state.ministry_mapper_dict.keys()))
+        if selected_criteria != "All":
+            selected_criteria = st.session_state.ministry_mapper_dict[selected_criteria]
+    return filter_column_with_criteria(df=df, column=column, criteria=selected_criteria)
+
+# def config_edit_df_user_posts() -> dict[str:st.column_config]:
+#     """Define the configuration of the columns for the editable dataframes"""
+#     config = {
+#         'Epl.' : st.column_config.NumberColumn('Epl.', width='small'),
+#         'Kap.' : st.column_config.NumberColumn('Kap.', width='small'),
+#         'Tit.' : st.column_config.NumberColumn('Tit.', width='small'),
+#         'Zweckbestimmung' : st.column_config.TextColumn('Zweckbestimmung', width='medium'),
+#         'Ist' : st.column_config.NumberColumn('Ist', width='medium'),
+#         'Seite' : st.column_config.NumberColumn('Seite', width='small'),
+#         'Zweck' : st.column_config.TextColumn('Zweck', width='medium')}
+    
+#     return config
+
 def config_edit_df_user_posts() -> dict[str:st.column_config]:
     """Define the configuration of the columns for the editable dataframes"""
     config = {
-        'Epl.' : st.column_config.NumberColumn('Epl.', width='small'),
-        'Kap.' : st.column_config.NumberColumn('Kap.', width='small'),
-        'Tit.' : st.column_config.NumberColumn('Tit.', width='small'),
-        'Zweckbestimmung' : st.column_config.TextColumn('Zweckbestimmung', width='medium'),
-        'Ist' : st.column_config.NumberColumn('Ist', width='medium'),
-        'Seite' : st.column_config.NumberColumn('Seite', width='small'),
-        'Zweck' : st.column_config.TextColumn('Zweck', width='medium')}
+        'Epl.' : st.column_config.NumberColumn('Epl.', width=40),
+        'Kap.' : st.column_config.NumberColumn('Kap.', width=40),
+        'Tit.' : st.column_config.NumberColumn('Tit.', width=55),
+        'Zweckbestimmung' : st.column_config.TextColumn('Zweckbestimmung', width="medium"),
+        'Ist' : st.column_config.NumberColumn('Ist', width=70),
+        'Seite' : st.column_config.NumberColumn('Seite', width=50)}
     
     return config
+
+def init_session_states():
+    """Init the streamlit session states for this page"""
+    if "ministry_mapper_dict" not in st.session_state:
+        st.session_state.ministry_mapper_dict = helper.load_json("application/data/ministry_mapper_dict.json")
+
+    if "df_12y" not in st.session_state:
+        # Load data
+        df_2023 = pd.read_excel("infrastructure/data/data_raw/HR2023.xlsx", engine="openpyxl")
+        df_id = pd.read_csv("domain/data/HR10y_on_id.csv", index_col="Unnamed: 0")
+        df_nlp = pd.read_csv("domain/data/HR10y_on_nlp.csv", index_col="Unnamed: 0")
+
+        # Data processing
+        df_nlp.drop(["id_nlp_help", "id_nlp"], axis=1, inplace=True)
+        df_12y = pd.concat([df_id, df_nlp], axis=0, ignore_index=True)
+
+        st.session_state["df_2023"] = df_2023
+        st.session_state["df_12y"] = df_12y.sort_values("Ist 2023", ascending=False)
+
+    if "df_12y_round" not in st.session_state:
+        price_cols = [col for col in st.session_state.df_12y.columns if col.startswith("Ist")]
+        st.session_state.df_12y_round = st.session_state.df_12y.round({price_col:0 for price_col in price_cols})\
+                                                .astype({price_col:"int64" for price_col in price_cols}, copy=True)
+
+    return
 # -------------------------------------------- Streamlit page ---------------------------------------------------------
 
-if "df_12y" not in st.session_state:
-    # Load data
-    df_2023 = pd.read_excel("infrastructure/data/data_raw/HR2023.xlsx", engine="openpyxl")
-    df_id = pd.read_csv("domain/data/HR10y_on_id.csv", index_col="Unnamed: 0")
-    df_nlp = pd.read_csv("domain/data/HR10y_on_nlp.csv", index_col="Unnamed: 0")
-
-    # Data processing
-    df_nlp.drop(["id_nlp_help", "id_nlp"], axis=1, inplace=True)
-    df_12y = pd.concat([df_id, df_nlp], axis=0, ignore_index=True)
-
-    st.session_state["df_2023"] = df_2023
-    st.session_state["df_12y"] = df_12y.sort_values("Ist 2023", ascending=False)
-
-if "df_12y_round" not in st.session_state:
-    price_cols = [col for col in st.session_state.df_12y.columns if col.startswith("Ist")]
-    st.session_state.df_12y_round = st.session_state.df_12y.round({price_col:0 for price_col in price_cols}).astype({price_col:"int64" for price_col in price_cols}, copy=True)
-
+init_session_states()
 
 # Check how much volumn of booking 2023 are mapped and round checkbox
 st.title("Bundeshaushalt over 12 years")
@@ -166,6 +195,9 @@ with st.container(border=True):
                                         Note "IT" searches for "iT" and "IT" but not "it" (try "it" and find out why).')
 
     user_df_plotted_2 = plot_kategory(df_12y, user_buzzword)
+    # Print the number of rows
+    st.write(f"df_sub has {len(user_df_plotted_2)} rows containing str: {user_buzzword}")
+
     st.subheader("Here is the plotted data")
     column_config_plot_1 = {col : st.column_config.NumberColumn(width=110) for col in user_df_plotted_1.columns if col.startswith("Ist")}
     column_config_plot_1["Zweckbestimmung"] = st.column_config.TextColumn(width=150)
@@ -182,7 +214,7 @@ with st.container(border=True):
 
     df_12y_filter = df_12y.drop([f"{year} id" for year in range(2012,2023)], axis=1) #.copy()
     # Filters as user selected
-    user_df_year_filtered = filter_selector_ministry(df_12y_filter, column="Epl.", label="Einzelplan (Epl.)", 
+    user_df_year_filtered = filter_selector_ministry2(df_12y_filter, column="Epl.", label="Einzelplan (Epl.)", 
                              helper_text="This is the ministry", st_column=select_einzelplan)
     user_df_year_filtered = filter_selector_ministry(user_df_year_filtered, column="Kap.", label="Kapitel (Kap.)", 
                              helper_text="This is the chapter of the ministry", st_column=select_kapitel)
@@ -205,30 +237,7 @@ with st.container(border=True):
 
     plot_kategory(user_df_year_filtered, "")
 
-with st.container(border=True):
-    st.subheader("Quick Calculator")
-    c1, c2, c3, c4, c5 = st.columns([3,3,3,1,3])
 
-    with c1:
-        value_1 = st.text_input("First Number", placeholder="5")
-    with c3:
-        value_2 = st.text_input("Second Number", placeholder="10")
-    with c2:
-        operator = st.selectbox("Operator", options=["+", "-", "*", "/"], placeholder="+")
-    with c4:
-        st.text_input("is",value="=")
-    with c5:
-        try:
-            if operator == "+":
-                result = float(value_1)+float(value_2)
-            elif operator == "-":
-                result = float(value_1)-float(value_2)
-            elif operator == "*":
-                result = float(value_1)*float(value_2)
-            elif operator == "/":
-                result = float(value_1)/float(value_2)
-            else:
-                result = 15
-        except:
-            result = "15"
-        st.text_input("Result",value=str(result), placeholder="15")
+# Widget Calculator
+with st.container(border=True):
+    helper.calculator()
