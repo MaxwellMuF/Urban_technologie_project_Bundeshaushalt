@@ -2,8 +2,9 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-from domain.src import id_mapper
+# from domain.src import id_mapper
 
+from application.src.utilities import helper_4 as helper4
 
 # -------------------------------------------- Funktions ---------------------------------------------------------
 def round_df(df):
@@ -68,77 +69,8 @@ with st.container(border=True):
         end_year = st.selectbox("Choose a year", [i for i in range(int(begin_year)+1,2024)], index=2024-2-begin_year)
 
     if st.button("Make dataset", help="Please note: You can make as many dataset as you want, but just the last one is saved. Thus you can only analyse the last dataset on the other pages!"):
-        st.session_state.own_dataset = id_mapper.pipeline((begin_year, end_year))
-    # elif "own_dataset" not in st.session_state:
-    #     df_own_data = pd.DataFrame()
-    # else:
-    #     print("We should never be here!")
-
+        st.session_state.own_dataset = helper4.pipeline((begin_year, end_year))
 
     if "own_dataset" in st.session_state:
         st.write(f"Here is your own dataset. It contains {st.session_state.own_dataset.shape[0]} positions:")
         st.dataframe(st.session_state.own_dataset)
-
-        # if st.button("Save dataset", help="If you want to use this dataset on other pages, please save it first!"):
-        #     st.session_state.own_dataset = df_own_data
-
-
-
-
-
-# # Widget with year selector and df show
-# with st.container(border=True):
-#     # Subtitle
-#     st.header("Which year do you want to look at?")
-#     # Selectbox 
-#     user_year = st.selectbox("Choose a year", [i for i in range(2012,2024)], index=11)
-#     # Load data
-#     user_df_year = pd.read_excel(f"infrastructure/data/data_raw/HR{user_year}.xlsx", engine="openpyxl")
-#     # Round if selected
-#     user_df_year = round_df(user_df_year)
-#     # Show data
-#     st.dataframe(user_df_year)
-
-
-# # Widget with string search and df show
-# with st.container(border=True):
-#     st.header("Lets search for some buzzwords in raw data")
-#     # User input for string search
-#     user_buzzword = st.text_input("String Filter. Use words like: 'Verwaltung', 'Steuer', 'Kirche', 'IT', 'Digital', 'Zuschüsse'...",
-#                                 placeholder="Enter a search word here", help='Search for positions that contain your word.\
-#                                 Capitalization is not taken into account, i.e. "Steuer" and "steuer"\
-#                                 are the same and vice versa. \
-#                                 Note "IT" searches for "iT" and "IT" but not "it" (try "it" and find out why).')
-#     # Drop None rows, needed to perform string search
-#     user_df_year.dropna(subset="Zweckbestimmung", inplace=True)
-
-#     # Filter by column "Zweckbestimmung" with user-criteria-string
-#     user_df_year_filtered_all = string_contains_ignore_first_capital(df=user_df_year, criteria=user_buzzword)
-#     st.write(f"df_sub has {len(user_df_year_filtered_all)} rows containing str: {user_buzzword}")
-  
-#     st.subheader(body="Here is the plotted data", 
-#                  help='If you do not enter a word, you will get the same table as above with one difference: \
-#                        we had to remove the None lines from "Zweckbestimmung". However, the row index remains the same, \
-#                        which is why row 1, that was displayed above, is missing here.')
-#     # Show filtered df
-#     st.dataframe(user_df_year_filtered_all, use_container_width=True)
-
-# # Widget with ministry filter and df show
-# with st.container(border=True):
-#     st.header("Let's take a look at the individual ministries.")
-#     st.write("Here you can choose which ministry you would like to look at. \
-#              You can also select individual chapters and titles of this ministry.")
-#     # Make 3 streamlit columns, i.e. 3 elements horizontally next to each other
-#     select_einzelplan, select_kapitel, select_titel = st.columns(3)
-
-#     # Filters as user selected
-#     user_df_year_filtered = filter_selector_ministry(user_df_year, column="Epl.", label="Einzelplan (Epl.)", 
-#                              helper_text="This is the ministry", st_column=select_einzelplan)
-#     user_df_year_filtered = filter_selector_ministry(user_df_year_filtered, column="Kap.", label="Kapitel (Kap.)", 
-#                              helper_text="This is the chapter of the ministry", st_column=select_kapitel)
-#     user_df_year_filtered = filter_selector_ministry(user_df_year_filtered, column="Tit.", label="Titel (Tit.)", 
-#                              helper_text="This is the title for the booking. Repeating positions \
-#                                                 (e.g. Vermischte Verwaltungsausgaben) have the same title and only occur \
-#                                                     once per chapter.", st_column=select_titel)
-#     # Show filter df
-#     st.dataframe(user_df_year_filtered, column_config=config_edit_df_user_posts(), use_container_width=True)
