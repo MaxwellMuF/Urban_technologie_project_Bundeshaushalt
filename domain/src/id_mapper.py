@@ -15,8 +15,8 @@ def data_clearing(df):
 
 def make_id_col(df):
     df["Zweckbestimmung"] = df["Zweckbestimmung"].str.normalize("NFKC")
-    df["id"] = df["Epl."].astype(str).str.zfill(2) + df["Kap."].astype(str).str.zfill(2) + df["Tit."].astype(str).str.zfill(5)
-    df["id"] = df["id"] #.astype(int)
+    df["id"] = df["Tit."].astype(str).str.zfill(5) + df["Epl."].astype(str).str.zfill(2) + df["Kap."].astype(str).str.zfill(2)
+    df["id"] = df["id"].astype(int)
     return df
 
 def data_preparing(file_name, year_sort):

@@ -4,6 +4,7 @@ import streamlit as st
 import openpyxl
 
 from application.src.utilities import helper_pages as helper
+from application.src.utilities import helper_3 
 
 # -------------------------------------------- Funktions ---------------------------------------------------------
 def round_df(df):
@@ -31,6 +32,21 @@ def string_contains_ignore_first_capital(df: pd.DataFrame, criteria: str) -> pd.
     user_df_filtered_all.drop_duplicates(inplace=True)
 
     return user_df_filtered_all
+
+
+def filter_string_search(df, str_kategory):
+    # st.write(f"df_sub has {len(df[df['Zweckbestimmung'].str.contains(str_kategory)])} rows containing str: {str_kategory}")
+    # Fix upper / lower case issue:
+    user_df_filtered_all = string_contains_ignore_first_capital(df, str_kategory)
+
+    df_plot_all = user_df_filtered_all[['Epl.', 'Kap.', 'Tit.',"Zweckbestimmung"]+\
+                                       sorted([col for col in df.columns if col.startswith("Ist")])]
+    # df_plot_sum = df_plot_all.drop(columns=["id",'Epl.','Kap.','Tit.',"Zweckbestimmung"])\
+    #                          .sum(axis=0).rename(str_kategory)
+    
+
+    return df_plot_all
+
 
 def filter_column_with_criteria(df, column, criteria):
     if criteria == "All":
@@ -98,28 +114,28 @@ with st.container(border=True):
     st.dataframe(user_df_year)
 
 
-# Widget with string search and df show
-with st.container(border=True):
-    st.header("Lets search for some buzzwords in raw data")
-    # User input for string search
-    user_buzzword = st.text_input("String Filter. Use words like: 'Verwaltung', 'Steuer', 'Kirche', 'IT', 'Digital', 'Zuschüsse'...",
-                                placeholder="Enter a search word here", help='Search for positions that contain your word.\
-                                Capitalization is not taken into account, i.e. "Steuer" and "steuer"\
-                                are the same and vice versa. \
-                                Note "IT" searches for "iT" and "IT" but not "it" (try "it" and find out why).')
-    # Drop None rows, needed to perform string search
-    user_df_year.dropna(subset="Zweckbestimmung", inplace=True)
+# # Widget with string search and df show
+# with st.container(border=True):
+#     st.header("Lets search for some buzzwords in raw data")
+#     # User input for string search
+#     user_buzzword = st.text_input("String Filter. Use words like: 'Verwaltung', 'Steuer', 'Kirche', 'IT', 'Digital', 'Zuschüsse'...",
+#                                 placeholder="Enter a search word here", help='Search for positions that contain your word.\
+#                                 Capitalization is not taken into account, i.e. "Steuer" and "steuer"\
+#                                 are the same and vice versa. \
+#                                 Note "IT" searches for "iT" and "IT" but not "it" (try "it" and find out why).')
+#     # Drop None rows, needed to perform string search
+#     user_df_year.dropna(subset="Zweckbestimmung", inplace=True)
 
-    # Filter by column "Zweckbestimmung" with user-criteria-string
-    user_df_year_filtered_all = string_contains_ignore_first_capital(df=user_df_year, criteria=user_buzzword)
-    st.write(f"df_sub has {len(user_df_year_filtered_all)} rows containing str: {user_buzzword}")
+#     # Filter by column "Zweckbestimmung" with user-criteria-string
+#     user_df_year_filtered_all = string_contains_ignore_first_capital(df=user_df_year, criteria=user_buzzword)
+#     st.write(f"df_sub has {len(user_df_year_filtered_all)} rows containing str: {user_buzzword}")
   
-    st.subheader(body="Here is the plotted data", 
-                 help='If you do not enter a word, you will get the same table as above with one difference: \
-                       we had to remove the None lines from "Zweckbestimmung". However, the row index remains the same, \
-                       which is why row 1, that was displayed above, is missing here.')
-    # Show filtered df
-    st.dataframe(user_df_year_filtered_all, use_container_width=True)
+#     st.subheader(body="Here is the plotted data", 
+#                  help='If you do not enter a word, you will get the same table as above with one difference: \
+#                        we had to remove the None lines from "Zweckbestimmung". However, the row index remains the same, \
+#                        which is why row 1, that was displayed above, is missing here.')
+#     # Show filtered df
+#     st.dataframe(user_df_year_filtered_all, use_container_width=True)
 
 # Widget with ministry filter and df show
 with st.container(border=True):
@@ -138,12 +154,27 @@ with st.container(border=True):
                              helper_text="This is the title for the booking. Repeating positions \
                                                 (e.g. Vermischte Verwaltungsausgaben) have the same title and only occur \
                                                     once per chapter.", st_column=select_titel)
+    # Drop None rows, needed to perform string search
+    user_df_year_filtered.dropna(subset="Zweckbestimmung", inplace=True)
+    # Filter string
+    user_buzzword = st.text_input(label='Enter words like: "Steuer", "Kirche", "IT", "Digital", "Zuschüsse"...',
+                            placeholder="Enter a search word here", 
+                            help='Search for positions that contain your word.\
+                                Capitalization is not taken into account, i.e. "Steuer" and "steuer"\
+                                are the same and vice versa. \
+                                Note "IT" searches for "iT" and "IT" but not "it" (try "it" and find out why).')
+    user_df_all_filters = filter_string_search(user_df_year_filtered, user_buzzword)
+
     # Show filter df
-    st.dataframe(user_df_year_filtered, column_config=config_edit_df_user_posts(), use_container_width=True)
-    ist_col = [col for col in user_df_year_filtered.columns if col.startswith("Ist")][0]
-    sum_all_positions = int(user_df_year_filtered[ist_col].sum())
-    st.write(f"The table above shows a total of {user_df_year_filtered.shape[0]:4} selected positions with a total budget of {sum_all_positions:15}, \
-             \nthat means {int(sum_all_positions//1e9)} billions {int(sum_all_positions%1e9//1e6)} millions and {int(sum_all_positions%1e6//1e3)} thousands")
+    st.dataframe(user_df_all_filters, column_config=config_edit_df_user_posts(), use_container_width=True)
+    ist_col = [col for col in user_df_all_filters.columns if col.startswith("Ist")][0]
+    sum_all_positions = int(user_df_all_filters[ist_col].sum())
+    st.write(f"You have filtered out {user_df_all_filters.shape[0]:4} positions with a total budget of: \
+             {int(sum_all_positions//1e9)} billions {int(sum_all_positions%1e9//1e6)} millions and \
+                {int(sum_all_positions%1e6//1e3)} thousands in year {ist_col.replace('Ist ', '')}.")
+
+    # helper_3.plot_df(user_df_sum, title=f"Sum all positions of the data above")
+
 
 # Widget Calculator
 with st.container(border=True):
