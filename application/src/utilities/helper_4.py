@@ -58,6 +58,7 @@ def pipeline(range_years: tuple[int,int]):
 
     # label as id map
     df_result["Mapper"] = "id"
+    df_result["Growth [%]"] = round(100 * df_result[f"Ist {range_years[1]}"] / df_result[f"Ist {range_years[0]}"])
     return df_result
 
 
@@ -147,7 +148,7 @@ def pipeline_nlp(df_all_id, range_years: tuple[int,int]) -> pd.DataFrame:
     # Make df with unmatched rows only
     df_reference_unmatched = df_reference[~df_reference["id"].isin(df_all_id["id"])].copy()
     # df_reference_unmatched.to_csv(f"domain/data/mapped_on_nlp/HR{range_years[1]}_nlp_reference_year_{path_tests}_unmatch.csv")
-    # df_all_id.to_csv(f"domain/data/HR12y_on_id_{path_tests}.csv")
+    df_all_id.to_csv(f"domain/data/HR12y_on_id{path_tests}.csv")
 
     # try:
     #     # try to load embeddings if they exist
@@ -215,10 +216,11 @@ def pipeline_nlp(df_all_id, range_years: tuple[int,int]) -> pd.DataFrame:
             my_bar.progress(my_bar_count, text=progress_text+f" ({round(my_bar_count*100,2)}% done).")
         #break
 
-    # df_all.to_csv(f"domain/data/HR12y_on_nlp_{path_tests}.csv")
     
     # Lable mapper
+    df_all["Growth [%]"] = round(100 * df_all[f"Ist {range_years[1]}"] / df_all[f"Ist {range_years[0]}"])
     df_all["Mapper"] = "id"
+    df_all.to_csv(f"domain/data/HR12y_on_nlp{path_tests}.csv")
 
     time.sleep(1)
     my_bar.empty() #3627

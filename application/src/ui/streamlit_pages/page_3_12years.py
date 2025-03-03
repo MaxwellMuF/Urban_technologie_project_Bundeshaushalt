@@ -95,7 +95,7 @@ def filter_selector_ministry2(df, column, label, helper_text, st_column):
     return filter_column_with_criteria(df=df, column=column, criteria=selected_criteria)
 
 
-def config_edit_df_user_posts() -> dict[str:st.column_config]:
+def config_edit_df_user() -> dict[str:st.column_config]:
     """Define the configuration of the columns for the editable dataframes"""
     config = {
         'Epl.' : st.column_config.NumberColumn('Epl.', width=40),
@@ -195,26 +195,6 @@ with st.container(border=True):
     st.dataframe(user_df_plotted_1, column_config=column_config_plot_1, use_container_width=True)
 
 
-# String Filer: strings containing buzzword
-# with st.container(border=True):
-#     st.header("Lets search for some buzzwords")
-#     user_buzzword = st.text_input(label='Enter words like: "Steuer", "Kirche", "IT", "Digital", "Zuschüsse"...',
-#                                   value='Verwaltung', 
-#                                   help='Search for positions that contain your word.\
-#                                         Capitalization is not taken into account, i.e. "Steuer" and "steuer"\
-#                                         are the same and vice versa. \
-#                                         Note "IT" searches for "iT" and "IT" but not "it" (try "it" and find out why).')
-
-#     user_df_plotted_2 = plot_kategory(df_12y, user_buzzword)
-#     # Print the number of rows
-#     st.write(f"df_sub has {len(user_df_plotted_2)} rows containing str: {user_buzzword}")
-
-#     st.subheader("Here is the plotted data")
-#     column_config_plot_1 = {col : st.column_config.NumberColumn(width=110) for col in user_df_plotted_1.columns if col.startswith("Ist")}
-#     column_config_plot_1["Zweckbestimmung"] = st.column_config.TextColumn(width=150)
-#     st.dataframe(user_df_plotted_2, column_config=column_config_plot_1, use_container_width=True)
-
-
 # Widget with ministry filter and df show
 with st.container(border=True):
     st.header("Let's take a look at the individual ministries.")
@@ -248,7 +228,8 @@ with st.container(border=True):
     st.dataframe(user_df_all_filters, column_config=column_config_plot_1, use_container_width=True,
                  column_order=["Epl.","Kap.","Tit.", "Zweckbestimmung"]+\
                               [f"Ist {year}" for year in range(2012,2024)]+\
-                              [f"{year} Zweck" for year in range(2012,2023)])
+                              [f"{year} Zweckbestimmung" for year in range(2012,2023)]+\
+                                ["Mapper"])
     ist_col = sorted([col for col in user_df_all_filters.columns if col.startswith("Ist")])[-1]
     sum_all_positions = int(user_df_all_filters[ist_col].sum())
     st.write(f"You have filtered out {user_df_all_filters.shape[0]:4} positions with a total budget of: \
