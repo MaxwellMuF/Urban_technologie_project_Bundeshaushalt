@@ -57,7 +57,7 @@ def pipeline(range_years: tuple[int,int]):
     my_bar.empty()
 
     # label as id map
-    df_result["Growth [%]"] = round(100 * df_result[f"Ist {range_years[1]}"] / df_result[f"Ist {range_years[0]}"])
+    df_result["Growth [%]"] = round(100 * df_result[f"Ist {range_years[1]}"] / df_result[f"Ist {range_years[0]}"]) - 100
     df_result["Mapper"] = "id"
 
     return df_result
@@ -149,7 +149,7 @@ def pipeline_nlp(df_all_id, range_years: tuple[int,int]) -> pd.DataFrame:
     # Make df with unmatched rows only
     df_reference_unmatched = df_reference[~df_reference["id"].isin(df_all_id["id"])].copy()
     # df_reference_unmatched.to_csv(f"domain/data/mapped_on_nlp/HR{range_years[1]}_nlp_reference_year_{path_tests}_unmatch.csv")
-    df_all_id.to_csv(f"domain/data/HR12y_on_id{path_tests}.csv")
+    # df_all_id.to_csv(f"domain/data/HR12y_on_id{path_tests}.csv")
 
     # try:
     #     # try to load embeddings if they exist
@@ -206,7 +206,7 @@ def pipeline_nlp(df_all_id, range_years: tuple[int,int]) -> pd.DataFrame:
         # map id from reference year
         df_i["id"] = [df_reference_unmatched.iloc[idx,7] if idx != None else None for idx in result_all]
 
-        df_i.to_csv(f"domain/data/mapped_on_nlp/HR{year}_nlp_mapped_to_HR2023{path_tests}.csv")
+        # df_i.to_csv(f"domain/data/mapped_on_nlp/HR{year}_nlp_mapped_to_HR2023{path_tests}.csv")
 
         df_i = df_i[["id", f"{year} id", f"{year} Zweckbestimmung", f"Ist {year}"]]
         print("\ndf_all len:", len(df_all))
@@ -219,9 +219,9 @@ def pipeline_nlp(df_all_id, range_years: tuple[int,int]) -> pd.DataFrame:
 
     
     # Lable mapper
-    df_all["Growth [%]"] = round(100 * df_all[f"Ist {range_years[1]}"] / df_all[f"Ist {range_years[0]}"])
+    df_all["Growth [%]"] = round(100 * df_all[f"Ist {range_years[1]}"] / df_all[f"Ist {range_years[0]}"]) - 100
     df_all["Mapper"] = "nlp"
-    df_all.to_csv(f"domain/data/HR12y_on_nlp{path_tests}.csv")
+    # df_all.to_csv(f"domain/data/HR12y_on_nlp{path_tests}.csv")
 
     time.sleep(1)
     my_bar.empty() #3627
