@@ -22,8 +22,9 @@ def filter_string_search(df, str_kategory):
     user_df_filtered_all = string_contains_ignore_first_capital(df, str_kategory)
 
     df_plot_all = user_df_filtered_all[["id", 'Epl.', 'Kap.', 'Tit.',"Zweckbestimmung"]+\
+                                       ["Growth [%]","Mapper"]+\
                                        sorted([col for col in df.columns if col.startswith("Ist")])]
-    df_plot_sum = df_plot_all.drop(columns=["id",'Epl.','Kap.','Tit.',"Zweckbestimmung"])\
+    df_plot_sum = df_plot_all.drop(columns=["id",'Epl.','Kap.','Tit.',"Zweckbestimmung","Growth [%]","Mapper"])\
                              .sum(axis=0).rename(str_kategory)
     
 
@@ -140,7 +141,7 @@ init_session_states()
 # Check how much volumn of booking 2023 are mapped and round checkbox
 st.title("Bundeshaushalt over 12 years")
 with st.container(border=True):
-    if "own_dataset" in st.session_state:
+    if "own_dataset_all" in st.session_state:
         st.subheader("Round the price columns and use your own dataset")
         # Round the 'Ist' columns if round selected
         user_round_df = st.checkbox(label='Round all the price columns "Ist ..." of dataframe (recommended)',
@@ -226,10 +227,10 @@ with st.container(border=True):
     for year in sorted([col for col in user_df_all_filters.columns if col.startswith("Ist")]):
         column_config_plot_1[f'{year} Zweck'] = st.column_config.TextColumn(f'{year} Zweck', width='medium')
     st.dataframe(user_df_all_filters, column_config=column_config_plot_1, use_container_width=True,
-                 column_order=["Epl.","Kap.","Tit.", "Zweckbestimmung"]+\
+                 column_order=["Epl.","Kap.","Tit.", "Zweckbestimmung", "Growth [%]"]+\
                               [f"Ist {year}" for year in range(2012,2024)]+\
-                              [f"{year} Zweckbestimmung" for year in range(2012,2023)]+\
-                                ["Mapper"])
+                            #   [f"{year} Zweckbestimmung" for year in range(2012,2023)]+\
+                              ["Mapper"])
     ist_col = sorted([col for col in user_df_all_filters.columns if col.startswith("Ist")])[-1]
     sum_all_positions = int(user_df_all_filters[ist_col].sum())
     st.write(f"You have filtered out {user_df_all_filters.shape[0]:4} positions with a total budget of: \
