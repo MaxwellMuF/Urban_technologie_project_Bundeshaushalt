@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-ut-haushalt
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: "urban-tech-bundeshaushalt.project.ris.bht-berlin.de"
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: service-ut-haushalt
+            port:
+              number: 8555
