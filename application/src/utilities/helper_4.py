@@ -55,6 +55,9 @@ def pipeline(range_years: tuple[int,int]):
         my_bar.progress(my_bar_count, text=progress_text)
     time.sleep(1)
     my_bar.empty()
+
+    # label as id map
+    df_result["Mapper"] = "id"
     return df_result
 
 
@@ -131,7 +134,7 @@ def pipeline_nlp(df_all_id, range_years: tuple[int,int]) -> pd.DataFrame:
     df_reference = data_preparing(f"HR{range_years[1]}.xlsx", str(range_years[1]), ministry_dict, zahlen_dict)
     df_reference = mapper_handmade(df_reference)
     df_reference = make_id_col_nlp(df_reference.copy(), str(range_years[1]), ministry_dict, zahlen_dict) # make id_nlp column again after mapper_handmade
-    df_reference.to_csv(f"domain/data/mapped_on_nlp/HR{range_years[1]}_nlp_reference_year_{path_tests}.csv")
+    # df_reference.to_csv(f"domain/data/mapped_on_nlp/HR{range_years[1]}_nlp_reference_year_{path_tests}.csv")
 
     # Make or load HR10y_on_id.csv, i.e. 10 years mapped on id
     # try:
@@ -143,8 +146,8 @@ def pipeline_nlp(df_all_id, range_years: tuple[int,int]) -> pd.DataFrame:
     #     df_merged_10y.to_csv("domain/data/HR10y_on_id.csv")
     # Make df with unmatched rows only
     df_reference_unmatched = df_reference[~df_reference["id"].isin(df_all_id["id"])].copy()
-    df_reference_unmatched.to_csv(f"domain/data/mapped_on_nlp/HR{range_years[1]}_nlp_reference_year_{path_tests}_unmatch.csv")
-    df_all_id.to_csv(f"domain/data/HR12y_on_id_{path_tests}.csv")
+    # df_reference_unmatched.to_csv(f"domain/data/mapped_on_nlp/HR{range_years[1]}_nlp_reference_year_{path_tests}_unmatch.csv")
+    # df_all_id.to_csv(f"domain/data/HR12y_on_id_{path_tests}.csv")
 
     # try:
     #     # try to load embeddings if they exist
@@ -201,7 +204,7 @@ def pipeline_nlp(df_all_id, range_years: tuple[int,int]) -> pd.DataFrame:
         # map id from reference year
         df_i["id"] = [df_reference_unmatched.iloc[idx,7] if idx != None else None for idx in result_all]
 
-        df_i.to_csv(f"domain/data/mapped_on_nlp/HR{year}_nlp_mapped_to_HR2023_{path_tests}.csv")
+        # df_i.to_csv(f"domain/data/mapped_on_nlp/HR{year}_nlp_mapped_to_HR2023_{path_tests}.csv")
 
         df_i = df_i[["id", f"{year} id", f"{year} Zweckbestimmung", f"Ist {year}"]]
         print("\ndf_all len:", len(df_all))
@@ -212,7 +215,10 @@ def pipeline_nlp(df_all_id, range_years: tuple[int,int]) -> pd.DataFrame:
             my_bar.progress(my_bar_count, text=progress_text+f" ({round(my_bar_count*100,2)}% done).")
         #break
 
-    df_all.to_csv(f"domain/data/HR12y_on_nlp_{path_tests}.csv")
+    # df_all.to_csv(f"domain/data/HR12y_on_nlp_{path_tests}.csv")
+    
+    # Lable mapper
+    df_all["Mapper"] = "id"
 
     time.sleep(1)
     my_bar.empty() #3627
