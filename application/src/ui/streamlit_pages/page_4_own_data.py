@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -68,16 +69,29 @@ with st.container(border=True):
     with col2:
         end_year = st.selectbox("Choose a year", [i for i in range(int(begin_year)+1,2024)], index=2024-2-begin_year)
 
-    if st.button("Make id dataset", help="Please note: You can make as many dataset as you want, but just the last one is saved. Thus you can only analyse the last dataset on the other pages!"):
-        st.session_state.own_dataset = helper4.pipeline((begin_year, end_year))
+    if st.button("Make id dataset", help="Please note: You can make as many dataset as you want, but just the last one is saved.\
+                                          Thus you can only analyse the last dataset on the other pages!"):
+        st.session_state.own_dataset_id = helper4.pipeline((begin_year, end_year))
 
-    if "own_dataset" in st.session_state:
-        st.write(f"Here is your own id dataset. It contains {st.session_state.own_dataset.shape[0]} positions:")
-        st.dataframe(st.session_state.own_dataset)
+    if "own_dataset_id" in st.session_state:
+        st.write(f"Here is your own id dataset. It contains {st.session_state.own_dataset_id.shape[0]} positions:")
+        st.dataframe(st.session_state.own_dataset_id)
 
 
-        if st.button("Make nlp dataset", help="Please note: You can make as many dataset as you want, but just the last one is saved. Thus you can only analyse the last dataset on the other pages!"):
-            st.session_state.own_dataset_nlp = helper4.pipeline_nlp((begin_year, end_year))
+        if st.button("Make nlp dataset", help="Please note: You can make as many dataset as you want, but just the last \
+                                               one is saved. Thus you can only analyse the last dataset on the other pages!"):
+            # Check if file / data exist
+            data_path_saved_own_data = f"application/data/datasets/HR_nlp_{begin_year}_{end_year}.csv"
+            if os.path.exists(data_path_saved_own_data):
+                st.success("Your data already exist. Load data instead!", icon=":material/save:")
+                st.session_state.own_dataset_all = pd.read_csv(data_path_saved_own_data)
+
+            # Make new dataset
+            else:
+                st.session_state.own_dataset_nlp = helper4.pipeline_nlp(st.session_state.own_dataset_id, (begin_year, end_year))
+                st.session_state.own_dataset_nlp.drop(["id_nlp_help", "id_nlp"], axis=1, inplace=True)
+                st.session_state.own_dataset_all = pd.concat([st.session_state.own_dataset_id, st.session_state.own_dataset_nlp], 
+                                                        axis=0, ignore_index=True)
 
         if "own_dataset_nlp" in st.session_state:
             st.write(f"Here is your own nlp dataset. It contains {st.session_state.own_dataset_nlp.shape[0]} positions:")
@@ -85,5 +99,5 @@ with st.container(border=True):
 
             if st.button("Save data for later."):
                 data_path_saved_own_data = f"application/data/datasets/HR_nlp_{begin_year}_{end_year}.csv"
-                st.session_state.own_dataset_nlp.to_csv(data_path_saved_own_data)
+                st.session_state.own_dataset_all.to_csv(data_path_saved_own_data)
                 st.success(f"Data saved at path: {data_path_saved_own_data}")

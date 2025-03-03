@@ -89,9 +89,9 @@ def filter_selector_ministry2(df, column, label, helper_text, st_column):
         selected_criteria= st.selectbox(label=label, 
                                         help=helper_text,
             # sorry for this list comp: several event catching if 'Tgr.' in title of some early years (e.g. 2012)
-            options= ["All"] + list(st.session_state.ministry_mapper_dict.keys()))
+            options= ["All"] + list(st.session_state.ministry_mapper_name_num.keys()))
         if selected_criteria != "All":
-            selected_criteria = st.session_state.ministry_mapper_dict[selected_criteria]
+            selected_criteria = st.session_state.ministry_mapper_name_num[selected_criteria]
     return filter_column_with_criteria(df=df, column=column, criteria=selected_criteria)
 
 
@@ -110,14 +110,15 @@ def config_edit_df_user_posts() -> dict[str:st.column_config]:
 
 def init_session_states():
     """Init the streamlit session states for this page"""
-    if "ministry_mapper_dict" not in st.session_state:
-        st.session_state.ministry_mapper_dict = helper.load_json("application/data/ministry_mapper_dict.json")
+    if "ministry_mapper_name_num" not in st.session_state:
+        st.session_state.ministry_mapper_name_num = helper.load_json("application/data/ministry_mapper_name_num.json")
 
     if "df_12y" not in st.session_state:
-        # Load data
-        df_2023 = pd.read_excel("infrastructure/data/data_raw/HR2023.xlsx", engine="openpyxl")
-        df_id = pd.read_csv("domain/data/HR10y_on_id.csv", index_col="Unnamed: 0")
-        df_nlp = pd.read_csv("domain/data/HR10y_on_nlp.csv", index_col="Unnamed: 0")
+        # Load data # application\data\datasets\HR10y_on_id.csv
+        # application/data/datasets/data_raw/HR{user_year}
+        df_2023 = pd.read_excel("application/data/datasets/data_raw/HR2023.xlsx", engine="openpyxl")
+        df_id = pd.read_csv("application/data/datasets/HR12y_on_id.csv", index_col="Unnamed: 0")
+        df_nlp = pd.read_csv("application/data/datasets/HR12y_on_nlp.csv", index_col="Unnamed: 0")
 
         # Data processing
         df_nlp.drop(["id_nlp_help", "id_nlp"], axis=1, inplace=True)
@@ -147,10 +148,10 @@ with st.container(border=True):
                                     help="The values are easier to compare if you round the decimal places. \
                                         If you want to have the exact data, e.g. because you want to download the table, \
                                         just uncheck this box.")
-        user_data_set_selection = st.checkbox(label="User your own dataset from page 'Make own Data':",
+        user_data_set_selection = st.toggle(label="User your own dataset from page 'Make own Data':",
                                               help="You can activate this box to use your own dataset on this page")
         if user_data_set_selection:
-            df_12y = st.session_state.own_dataset
+            df_12y = st.session_state.own_dataset_all
         else:
             df_12y = st.session_state.df_12y
         

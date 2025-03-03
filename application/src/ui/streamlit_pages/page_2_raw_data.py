@@ -59,9 +59,9 @@ def filter_selector_ministry2(df, column, label, helper_text, st_column):
         selected_criteria= st.selectbox(label=label, 
                                         help=helper_text,
             # sorry for this list comp: several event catching if 'Tgr.' in title of some early years (e.g. 2012)
-            options= ["All"] + list(st.session_state.ministry_mapper_dict.keys()))
+            options= ["All"] + list(st.session_state.ministry_mapper_name_num.keys()))
         if selected_criteria != "All":
-            selected_criteria = st.session_state.ministry_mapper_dict[selected_criteria]
+            selected_criteria = st.session_state.ministry_mapper_name_num[selected_criteria]
     return filter_column_with_criteria(df=df, column=column, criteria=selected_criteria)
 
 def filter_selector_ministry(df, column, label, helper_text, st_column):
@@ -86,8 +86,8 @@ def config_edit_df_user_posts() -> dict[str:st.column_config]:
 
 def init_session_states():
     """Init the streamlit session states for this page"""
-    if "ministry_mapper_dict" not in st.session_state:
-        st.session_state.ministry_mapper_dict = helper.load_json("application/data/ministry_mapper_dict.json")
+    if "ministry_mapper_name_num" not in st.session_state:
+        st.session_state.ministry_mapper_name_num = helper.load_json("application/data/ministry_mapper_name_num.json")
 
     return
 # -------------------------------------------- Streamlit page ---------------------------------------------------------
@@ -107,7 +107,8 @@ with st.container(border=True):
     # Selectbox 
     user_year = st.selectbox("Choose a year", [i for i in range(2012,2024)], index=11)
     # Load data
-    user_df_year = pd.read_excel(f"infrastructure/data/data_raw/HR{user_year}.xlsx", engine="openpyxl")
+    with st.spinner(text=f"Load Excel of year {user_year}"): 
+        user_df_year = pd.read_excel(f"application/data/datasets/data_raw/HR{user_year}.xlsx", engine="openpyxl")
     # Round if selected
     user_df_year = round_df(user_df_year)
     # Show data
