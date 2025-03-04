@@ -4,6 +4,13 @@ cookie:
   name: some_cookie_name
 credentials:
   usernames:
+    felix:
+      email: user2@email.com
+      failed_login_attempts: 0
+      first_name: Felix
+      last_name: "Bie\xDFmann"
+      logged_in: false
+      password: $2b$12$6cqchwMu5d4.oA084AoYu.lDpLiIlWrRJR6H04lyThkCrFpz4Cqea
     user1:
       email: user1@gmail.com
       failed_login_attempts: 0
@@ -11,13 +18,3 @@ credentials:
       name: Test User
       password: $2b$12$TT.gJAQvDBSoBLcwGO02uulhQMJgRagYGsh.pdSu9gqNdNodlacoS
       pw_clear: '123'
-    user2:
-      email: user2@email.com
-      failed_login_attempts: 0
-      first_name: Test two
-      last_name: User
-      logged_in: false
-      password: $2b$12$TT.gJAQvDBSoBLcwGO02uulhQMJgRagYGsh.pdSu9gqNdNodlacoS
-      password_hint: user2
-      pw_clear: '123'
-      roles: null
